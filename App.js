@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, TextInput } from 'react-native';
+import { vibrate } from './utils'
 
 export default function App() {
   const [start, setStart] = useState(false)
@@ -29,12 +30,20 @@ export default function App() {
   }
 
   const intervalId = useInterval(() => {
-    if (start) {
+    if (start && totalSecs != 0) {
       setTotalSecs(prevCount => --prevCount)
       setMinutes(Math.floor(totalSecs/ 60))
       setSeconds(totalSecs % 60)
     }
-    else if (totalSecs === 0 || !start){
+    // if (totalSecs === 0 || !start)
+    else {
+      if (totalSecs === 0 && start) {
+        setStart(prevState => !prevState)
+        setTotalSecs(prevCount => --prevCount)
+        setMinutes(Math.floor(totalSecs/ 60))
+        setSeconds(totalSecs % 60)
+        vibrate();
+      }
       clearImmediate(intervalId)
     }
   }, 1000);
