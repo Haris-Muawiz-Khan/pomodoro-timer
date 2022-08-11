@@ -7,7 +7,10 @@ export default function App() {
   const [start, setStart] = useState(false)
   const [minutes, setMinutes] = useState(0)
   const [seconds, setSeconds] = useState(0)
+  const [breakMinutes, setBreakMinutes] = useState(0)
+  const [breakSeconds, setBreakSeconds] = useState(0)
   const [totalSecs, setTotalSecs] = useState(0)
+  const [workOrBreak, setWorkOrBreak] = useState(false)
 
   function useInterval(callback, delay) {
     const savedCallback = useRef();
@@ -32,16 +35,28 @@ export default function App() {
   const intervalId = useInterval(() => {
     if (start && totalSecs != 0) {
       setTotalSecs(prevCount => --prevCount)
-      setMinutes(Math.floor(totalSecs/ 60))
-      setSeconds(totalSecs % 60)
+      if (workOrBreak) {
+        setMinutes(Math.floor(totalSecs/ 60))
+        setSeconds(totalSecs % 60)
+      } else {
+        setBreakMinutes(Math.floor(totalSecs/ 60))
+        setBreakSeconds(totalSecs % 60)
+      }
     }
     // if (totalSecs === 0 || !start)
     else {
       if (totalSecs === 0 && start) {
         setStart(prevState => !prevState)
         setTotalSecs(prevCount => --prevCount)
-        setMinutes(Math.floor(totalSecs/ 60))
-        setSeconds(totalSecs % 60)
+        
+        if (workOrBreak) {
+          setMinutes(Math.floor(totalSecs/ 60))
+          setSeconds(totalSecs % 60)
+        } else {
+          setBreakMinutes(Math.floor(totalSecs/ 60))
+          setBreakSeconds(totalSecs % 60)
+        }
+
         vibrate();
       }
       clearImmediate(intervalId)
@@ -50,7 +65,11 @@ export default function App() {
 
   function onPress() {
     setStart(prevState => !prevState)
-    setTotalSecs(parseInt(minutes * 60) + parseInt(seconds))
+    if (workOrBreak) {
+      setTotalSecs(parseInt(minutes * 60) + parseInt(seconds))
+    } else {
+      setTotalSecs(parseInt(breakMinutes * 60) + parseInt(breakSeconds))
+    }
   }
 
   function resetCount() {
@@ -58,11 +77,13 @@ export default function App() {
     setTotalSecs(0)
     setMinutes(0)
     setSeconds(0)
+    setBreakMinutes(0)
+    setBreakSeconds(0)
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={{ fontWeight: 'bold', fontSize: 50, }}>Work Timer</Text>
+      <Text style={{ fontWeight: 'bold', fontSize: 50, }}>{workOrBreak ? 'Work' : 'Break'} Timer</Text>
       <Text style={{ fontWeight: 'bold', fontSize: 50, }}>
         {minutes.toString().padStart(2, '0')} : {seconds.toString().padStart(2, '0')}
       </Text>
@@ -111,18 +132,20 @@ export default function App() {
             <Text>Minutes: </Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter Minutes"
+              placeholder="0"
               keyboardType="numeric"
               textAlign="center"
+              onChangeText={minutes => setBreakMinutes(minutes)}
             />
           </View>
           <View style={styles.minInputs}>
             <Text>Seconds: </Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter Seconds"
+              placeholder="0"
               keyboardType="numeric"
               textAlign="center"
+              onChange={secs => setBreakSeconds(secs)}
             />
           </View>
         </View>
