@@ -28,54 +28,24 @@ export default function App() {
     }, [delay]);
   }
 
-  let intervalId = null
-
-  useEffect(() => {
-    if (!start) {
-      clearInterval(intervalId)
+  const intervalId = useInterval(() => {
+    if (start) {
+      setTotalSecs(prevCount => --prevCount)
+      setMinutes(Math.floor(totalSecs/ 60))
+      setSeconds(totalSecs % 60)
     }
-
-    const intervalId = setInterval(() => {
-      setTotalSecs(prevCount => {
-        if (prevCount === 0){
-          clearImmediate(intervalId)
-        }
-        return --prevCount
-      })
-    }, 1000);
-    console.log(totalSecs)
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [start]);
+    else if (totalSecs === 0 || !start){
+      clearImmediate(intervalId)
+    }
+  }, 1000);
 
   function onPress() {
     setStart(prevState => !prevState)
     setTotalSecs(parseInt(minutes * 60) + parseInt(seconds))
-    // if (!start) {
-    //   // intervalId = setInterval(function () {
-    //   //   setTotalSecs(prevCount => --prevCount)
-
-    //     // if (totalSecs <= 0) {
-    //     //   clearInterval(intervalId)
-    //     //   setMinutes(0)
-    //     //   setSeconds(0)
-    //     //   setTotalSecs(0)
-    //     //   return
-    //     // }
-    //   // }, 1000)
-    // } else {
-    //   clearTimeout(intervalId)
-    //   setTotalSecs(0)
-    //   setMinutes(0)
-    //   setSeconds(0)
-    //   return
-    // }
   }
 
   function resetCount() {
     setStart(false)
-    // clearInterval(intervalId)
     setTotalSecs(0)
     setMinutes(0)
     setSeconds(0)
@@ -85,7 +55,7 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <Text style={{ fontWeight: 'bold', fontSize: 50, }}>Work Timer</Text>
       <Text style={{ fontWeight: 'bold', fontSize: 50, }}>
-        {Math.floor(totalSecs / 60).toString().padStart(2, '0')} : {(totalSecs % 60).toString().padStart(2, '0')}
+        {minutes.toString().padStart(2, '0')} : {seconds.toString().padStart(2, '0')}
       </Text>
 
       <View style={styles.buttonContainer}>
@@ -111,22 +81,20 @@ export default function App() {
             <Text>Minutes: </Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter Minutes"
+              placeholder="0"
               keyboardType="numeric"
               onChangeText={mins => setMinutes(mins)}
               textAlign="center"
-              value={minutes.toString()}
             />
           </View>
           <View style={styles.minInputs}>
             <Text>Seconds: </Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter Seconds"
+              placeholder="0"
               keyboardType="numeric"
               onChangeText={secs => setSeconds(secs)}
               textAlign="center"
-              value={seconds.toString()}
             />
           </View>
           <Text style={{ fontWeight: 'bold', marginLeft: '30%' }}>Break Time</Text>
@@ -175,6 +143,12 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: 'red',
+    width: 200,
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingHorizontal: 10,
   },
   textColor: {
     color: 'white',
@@ -191,7 +165,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: 'gray',
     borderRadius: 5,
-    maxWidth: 100,
+    minWidth: 100,
   },
   minInputs: {
     flexDirection: 'row',
