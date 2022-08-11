@@ -144,7 +144,6 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: 'red',
     width: 200,
     paddingTop: 10,
     paddingBottom: 10,
