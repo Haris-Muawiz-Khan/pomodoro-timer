@@ -46,7 +46,7 @@ export default function App() {
     // if (totalSecs === 0 || !start)
     else {
       if (totalSecs === 0 && start) {
-        setStart(prevState => !prevState)
+        
         setTotalSecs(prevCount => --prevCount)
         
         if (workOrBreak) {
@@ -56,8 +56,11 @@ export default function App() {
           setBreakMinutes(Math.floor(totalSecs/ 60))
           setBreakSeconds(totalSecs % 60)
         }
-
+        
+        setWorkOrBreak(prevState => !prevState)
         vibrate();
+        // setStart(prevState => !prevState)
+        onPress()
       }
       clearImmediate(intervalId)
     }
@@ -83,7 +86,10 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={{ fontWeight: 'bold', fontSize: 50, }}>{workOrBreak ? 'Work' : 'Break'} Timer</Text>
+      <Text style={{ fontWeight: 'bold', fontSize: 50, }}>
+        {workOrBreak ? 'Work' : 'Break'} Timer
+      </Text>
+
       <Text style={{ fontWeight: 'bold', fontSize: 50, }}>
         {minutes.toString().padStart(2, '0')} : {seconds.toString().padStart(2, '0')}
       </Text>
