@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { vibrate } from './utils'
 
 export default function App() {
@@ -10,7 +10,7 @@ export default function App() {
   const [breakMinutes, setBreakMinutes] = useState(0)
   const [breakSeconds, setBreakSeconds] = useState(0)
   const [totalSecs, setTotalSecs] = useState(0)
-  const [workOrBreak, setWorkOrBreak] = useState(false)
+  const [workOrBreak, setWorkOrBreak] = useState(true)
 
   function useInterval(callback, delay) {
     const savedCallback = useRef();
@@ -33,45 +33,53 @@ export default function App() {
   }
 
   const intervalId = useInterval(() => {
+    console.log('executed')
+    if (!start) {
+      console.log('not start')
+      return clearInterval(intervalId)
+    }
+
     if (start && totalSecs != 0) {
       setTotalSecs(prevCount => --prevCount)
-      if (workOrBreak) {
-        setMinutes(Math.floor(totalSecs/ 60))
-        setSeconds(totalSecs % 60)
-      } else {
-        setBreakMinutes(Math.floor(totalSecs/ 60))
-        setBreakSeconds(totalSecs % 60)
-      }
-    }
-    // if (totalSecs === 0 || !start)
-    else {
+    } else {
       if (totalSecs === 0 && start) {
-        
+        console.log('executed')
         setTotalSecs(prevCount => --prevCount)
-        
-        if (workOrBreak) {
-          setMinutes(Math.floor(totalSecs/ 60))
-          setSeconds(totalSecs % 60)
-        } else {
-          setBreakMinutes(Math.floor(totalSecs/ 60))
-          setBreakSeconds(totalSecs % 60)
-        }
-        
         setWorkOrBreak(prevState => !prevState)
+
         vibrate();
-        // setStart(prevState => !prevState)
-        onPress()
+
+        if (workOrBreak) {
+          setTotalSecs(() => parseInt(minutes * 60) + parseInt(seconds))
+        } else {
+          setTotalSecs(() => parseInt(breakMinutes * 60) + parseInt(breakSeconds))
+        }
       }
-      clearImmediate(intervalId)
+      clearInterval(intervalId)
     }
   }, 1000);
 
   function onPress() {
-    setStart(prevState => !prevState)
-    if (workOrBreak) {
-      setTotalSecs(parseInt(minutes * 60) + parseInt(seconds))
+
+    if ((minutes === 0 && seconds === 0) || (breakMinutes === 0 && breakSeconds === 0)) {
+      Alert.alert(
+        "Time not set",
+        "You need to enter the time for the timer to work.",
+        [
+          {
+            text: "Got It!",
+            style: ' borderColor: blue; backgroundColor: blue: borderWidth=1px; borderRadius=5px; textColor=white;'
+          }
+        ],
+        {
+          cancelable: true,
+        }
+      )
     } else {
-      setTotalSecs(parseInt(breakMinutes * 60) + parseInt(breakSeconds))
+      setStart(prevState => !prevState)
+    }
+    if (!start) {
+      clearInterval(intervalId)
     }
   }
 
@@ -87,11 +95,11 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={{ fontWeight: 'bold', fontSize: 50, }}>
-        {workOrBreak ? 'Work' : 'Break'} Timer
+        {workOrBreak ? 'Break' : 'Work'} Timer
       </Text>
 
       <Text style={{ fontWeight: 'bold', fontSize: 50, }}>
-        {minutes.toString().padStart(2, '0')} : {seconds.toString().padStart(2, '0')}
+        {Math.floor(totalSecs / 60).toString().padStart(2, '0')} : {Math.floor(totalSecs % 60).toString().padStart(2, '0')}
       </Text>
 
       <View style={styles.buttonContainer}>
@@ -121,6 +129,7 @@ export default function App() {
               keyboardType="numeric"
               onChangeText={mins => setMinutes(mins)}
               textAlign="center"
+              value={minutes.toString()}
             />
           </View>
           <View style={styles.minInputs}>
@@ -131,6 +140,7 @@ export default function App() {
               keyboardType="numeric"
               onChangeText={secs => setSeconds(secs)}
               textAlign="center"
+              value={seconds.toString()}
             />
           </View>
           <Text style={{ fontWeight: 'bold', marginLeft: '30%' }}>Break Time</Text>
@@ -141,7 +151,8 @@ export default function App() {
               placeholder="0"
               keyboardType="numeric"
               textAlign="center"
-              onChangeText={minutes => setBreakMinutes(minutes)}
+              onChangeText={min => setBreakMinutes(min)}
+              value={breakMinutes.toString()}
             />
           </View>
           <View style={styles.minInputs}>
@@ -151,7 +162,8 @@ export default function App() {
               placeholder="0"
               keyboardType="numeric"
               textAlign="center"
-              onChange={secs => setBreakSeconds(secs)}
+              onChangeText={sec => setBreakSeconds(sec)}
+              value={breakSeconds.toString()}
             />
           </View>
         </View>
