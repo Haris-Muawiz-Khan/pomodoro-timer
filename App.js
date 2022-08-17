@@ -22,28 +22,23 @@ export default function App() {
 
     // Set up the interval.
     useEffect(() => {
-      function tick() {
-        savedCallback.current();
+      if (start) {
+        function tick() {
+          savedCallback.current();
+        }
+        if (delay !== null) {
+          let id = setInterval(tick, delay);
+          return () => clearInterval(id);
+        }
       }
-      if (delay !== null) {
-        let id = setInterval(tick, delay);
-        return () => clearInterval(id);
-      }
-    }, [delay]);
+    }, [delay, start]);
   }
 
   const intervalId = useInterval(() => {
-    console.log('executed')
-    if (!start) {
-      console.log('not start')
-      return clearInterval(intervalId)
-    }
-
     if (start && totalSecs != 0) {
       setTotalSecs(prevCount => --prevCount)
     } else {
       if (totalSecs === 0 && start) {
-        console.log('executed')
         setTotalSecs(prevCount => --prevCount)
         setWorkOrBreak(prevState => !prevState)
 
@@ -55,12 +50,10 @@ export default function App() {
           setTotalSecs(() => parseInt(breakMinutes * 60) + parseInt(breakSeconds))
         }
       }
-      clearInterval(intervalId)
     }
   }, 1000);
 
   function onPress() {
-
     if ((minutes === 0 && seconds === 0) || (breakMinutes === 0 && breakSeconds === 0)) {
       Alert.alert(
         "Time not set",
@@ -78,9 +71,6 @@ export default function App() {
     } else {
       setStart(prevState => !prevState)
     }
-    if (!start) {
-      clearInterval(intervalId)
-    }
   }
 
   function resetCount() {
@@ -90,6 +80,7 @@ export default function App() {
     setSeconds(0)
     setBreakMinutes(0)
     setBreakSeconds(0)
+    setWorkOrBreak(true)
   }
 
   return (
